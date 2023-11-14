@@ -1,4 +1,4 @@
-using SantanderChallenge.Domain.Services.HackerNews.Models;
+using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.Models;
 
 namespace SantanderChallenge.Domain.Services.HackerNews;
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SantanderChallenge.Domain.Services.HackerNews;
 using SantanderChallenge.WebApi.Converters;
-using SantanderChallenge.WebApi.ResponseModels;
 
 namespace SantanderChallenge.WebApi.Controllers;
 
@@ -22,11 +21,23 @@ public class ArticlesController : ControllerBase
 
     [HttpGet]
     [Route("top-stories/{count:int}")]
-    public async Task<IEnumerable<HackerNewsArticleResponse>> GetAsync(int count)
+    public async Task<IActionResult> GetAsync(int count)
     {
-        _logger.LogInformation($"Requesting top {count} HackerNews articles");
+        _logger.LogInformation($"Requesting top {count} articles from top-stories endpoint");
 
-        return (await _hackerNewsService.GetTopStoriesAsync(count))
-            .Select(HackerNewsArticleToResponseConverter.ToResponseModel);
+        try
+        {
+            var response = (await _hackerNewsService.GetTopStoriesAsync(count))
+                .Take(count)
+                .Select(HackerNewsArticleToResponseConverter.ToResponseModel);
+
+            return Ok(response);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred while fetching top articles.");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred");
+        }
     }
 }

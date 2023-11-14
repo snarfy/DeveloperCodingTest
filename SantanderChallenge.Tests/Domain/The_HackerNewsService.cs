@@ -1,31 +1,35 @@
 ﻿using FakeItEasy;
 using SantanderChallenge.Domain.Services.HackerNews;
-using SantanderChallenge.Domain.Services.HackerNews.Models;
-using SantanderChallenge.Domain.Services.HackerNews.Transport;
+using SantanderChallenge.Domain.Services.HackerNews.Client;
+using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.Models;
 using Shouldly;
 using Xunit;
 
 namespace SantanderChallenge.Tests.Domain;
 
-public class HackerNewsServiceTests
+// ReSharper disable once InconsistentNaming
+public class The_HackerNewsService
 {
     [Fact]
     public async void Returns_correct_data_from_HackerNewsApiClient()
     {
-        var mockHackerNewsTransport = A.Fake<IHackerNewsProvider>();
-        A.CallTo(() => mockHackerNewsTransport.GetTopStoryIdsAsync(3))
+        var dateTimeNow = DateTime.Now;
+
+        var mockHackerNewsTransport = A.Fake<IHackerNewsApi>();
+        A.CallTo(() => mockHackerNewsTransport.GetTopStoryIdsAsync())
             .Returns(new List<int> { 123, 232, 15 });
         A.CallTo(() => mockHackerNewsTransport.GetStoryByIdAsync(123))
-            .Returns(new HackerNewsStory("title123", "123", "pete", DateTime.Now, 100, 1000));
+            .Returns(new HackerNewsStory("title123", "uri123", "pete", dateTimeNow, 100, 1000));
 
         var service = new HackerNewsService(mockHackerNewsTransport);
         var topStories = await service.GetTopStoriesAsync(3);
 
-        topStories.Count().ShouldBe(3);
+        topStories.Count().ShouldBe(3, "expected 3 articles");
 
         topStories.First().Title.ShouldBe("title123");
-        topStories.First().Uri.ShouldBe("123");
+        topStories.First().Uri.ShouldBe("uri123");
         topStories.First().PostedBy.ShouldBe("pete");
+        topStories.First().Time.ShouldBe(dateTimeNow);
         topStories.First().Score.ShouldBe(100);
         topStories.First().CommentCount.ShouldBe(1000);
     }
