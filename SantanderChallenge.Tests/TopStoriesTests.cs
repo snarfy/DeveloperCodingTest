@@ -8,14 +8,16 @@ namespace SantanderChallenge.Tests;
 public class TopStoriesTests
 {
     [Fact]
-    public async void Can_retrieve_coming_soon_text()
+    public async void Can_pass_on_the_amount_requested()
     {
         var application = new WebApplicationFactory<Program>();
 
         var client = application.CreateClient();
 
-        var response = await client.GetStringAsync("/articles/top-stories");
+        (await client.GetStringAsync("/articles/top-stories/1"))
+            .ShouldBe("fetching 1");
 
-        response.ShouldBe("Coming soon...");
+        (await client.GetStringAsync("/articles/top-stories/5"))
+            .ShouldBe("fetching 5");
     }
 }

@@ -14,9 +14,9 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpGet]
-    [Route("top-stories")]
-    public string Get()
+    [Route("top-stories/{count:int}")]
+    public string Get(int count)
     {
-        return "Coming soon...";
+        return $"fetching {count}";
     }
 }
