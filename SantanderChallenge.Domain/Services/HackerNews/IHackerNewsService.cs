@@ -4,5 +4,5 @@ namespace SantanderChallenge.Domain.Services.HackerNews;
 
 public interface IHackerNewsService
 {
-    Task<IEnumerable<HackerNewsStory>> GetTopStories(int count);
+    Task<IEnumerable<HackerNewsStory>> GetTopStoriesAsync(int count);
 }

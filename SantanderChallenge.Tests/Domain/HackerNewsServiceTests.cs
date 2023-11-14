@@ -1,24 +1,32 @@
 ﻿using FakeItEasy;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using SantanderChallenge.Domain.Services.HackerNews;
 using SantanderChallenge.Domain.Services.HackerNews.Models;
-using SantanderChallenge.WebApi;
-using SantanderChallenge.WebApi.ResponseModels;
+using SantanderChallenge.Domain.Services.HackerNews.Transport;
 using Shouldly;
 using Xunit;
 
-namespace SantanderChallenge.Tests.Controllers;
+namespace SantanderChallenge.Tests.Domain;
 
 public class HackerNewsServiceTests
 {
     [Fact]
-    public async void Returns_correct_number_of_HackerNews_stories()
+    public async void Returns_correct_data_from_HackerNewsApiClient()
     {
-        var service = new HackerNewsService();
-        var topStories = await service.GetTopStories(5);
+        var mockHackerNewsTransport = A.Fake<IHackerNewsApiClient>();
+        A.CallTo(() => mockHackerNewsTransport.GetTopStoryIdsAsync(3))
+            .Returns(new List<int> { 123, 232, 15 });
+        A.CallTo(() => mockHackerNewsTransport.GetStoryByIdAsync(123))
+            .Returns(new HackerNewsStory("title123", "123", "pete", DateTime.Now, 100, 1000));
 
-        topStories.Count().ShouldBe(5);
+        var service = new HackerNewsService(mockHackerNewsTransport);
+        var topStories = await service.GetTopStoriesAsync(3);
+
+        topStories.Count().ShouldBe(3);
+
+        topStories.First().Title.ShouldBe("title123");
+        topStories.First().Uri.ShouldBe("123");
+        topStories.First().PostedBy.ShouldBe("pete");
+        topStories.First().Score.ShouldBe(100);
+        topStories.First().CommentCount.ShouldBe(1000);
     }
 }

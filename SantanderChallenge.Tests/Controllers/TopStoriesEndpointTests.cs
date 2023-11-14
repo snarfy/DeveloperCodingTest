@@ -17,7 +17,7 @@ public class TopStoriesEndpointTests
     public async void Return_data_from_HackerNewsService_in_correct_format()
     {
         var mockHackerNewsService = A.Fake<IHackerNewsService>();
-        A.CallTo(() => mockHackerNewsService.GetTopStories(1))
+        A.CallTo(() => mockHackerNewsService.GetTopStoriesAsync(1))
             .Returns(new List<HackerNewsStory>
             {
                 new("A uBlock Origin update was rejected from the Chrome Web Store",

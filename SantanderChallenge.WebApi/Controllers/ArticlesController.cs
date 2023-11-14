@@ -26,7 +26,7 @@ public class ArticlesController : ControllerBase
     {
         _logger.LogInformation($"Requesting top {count} HackerNews articles");
 
-        return (await _hackerNewsService.GetTopStories(count))
+        return (await _hackerNewsService.GetTopStoriesAsync(count))
             .Select(HackerNewsArticleToResponseConverter.ToResponseModel);
     }
 }

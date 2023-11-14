@@ -1,11 +1,22 @@
 using SantanderChallenge.Domain.Services.HackerNews.Models;
+using SantanderChallenge.Domain.Services.HackerNews.Transport;
 
 namespace SantanderChallenge.Domain.Services.HackerNews;
 
 public class HackerNewsService : IHackerNewsService
 {
-    public async Task<IEnumerable<HackerNewsStory>> GetTopStories(int count)
+    private readonly IHackerNewsApiClient _hackerNewsApiClient;
+
+    public HackerNewsService(IHackerNewsApiClient hackerNewsApiClient)
     {
-        return Enumerable.Repeat(HackerNewsStory.Stub, count);
+        _hackerNewsApiClient = hackerNewsApiClient;
+    }
+
+    public async Task<IEnumerable<HackerNewsStory>> GetTopStoriesAsync(int count)
+    {
+        var ids = await _hackerNewsApiClient.GetTopStoryIdsAsync(count);
+        var fetchTasks = ids.Select(id => _hackerNewsApiClient.GetStoryByIdAsync(id));
+        var result = await Task.WhenAll(fetchTasks);
+        return result;
     }
 }

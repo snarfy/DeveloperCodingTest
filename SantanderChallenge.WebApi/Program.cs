@@ -1,4 +1,5 @@
 using SantanderChallenge.Domain.Services.HackerNews;
+using SantanderChallenge.Domain.Services.HackerNews.Transport;
 
 namespace SantanderChallenge.WebApi;
 
@@ -34,5 +35,6 @@ internal class Program
     private static void RegisterServices(WebApplicationBuilder builder)
     {
         builder.Services.AddTransient<IHackerNewsService, HackerNewsService>();
+        builder.Services.AddTransient<IHackerNewsApiClient, HackerNewsApiClient>();
     }
 }
