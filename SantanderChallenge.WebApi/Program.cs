@@ -1,21 +1,20 @@
+using SantanderChallenge.WebApi.Services.HackerNews;
+
 namespace SantanderChallenge.WebApi;
 
 internal class Program
 {
     public static void Main(string[] args)
     {
-        //var builderFactory = new WebApplicationBuilderFactory();
-        //var builder = builderFactory.Get();
-
         var builder = WebApplication.CreateBuilder(args);
+
+        RegisterServices(builder);
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
-        //var server = new TestServer(builder.WebHost);
-        //var _client = server.CreateClient();
 
         if (app.Environment.IsDevelopment())
         {
@@ -30,5 +29,10 @@ internal class Program
         app.MapControllers();
 
         app.Run();
+    }
+
+    private static void RegisterServices(WebApplicationBuilder builder)
+    {
+        builder.Services.AddTransient<IHackerNewsService, HackerNewsService>();
     }
 }

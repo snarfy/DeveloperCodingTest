@@ -4,20 +4,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using SantanderChallenge.WebApi;
 using SantanderChallenge.WebApi.ResponseModels;
-using SantanderChallenge.WebApi.Services;
+using SantanderChallenge.WebApi.Services.HackerNews;
+using SantanderChallenge.WebApi.Services.HackerNews.Models;
 using Shouldly;
 using Xunit;
 
 namespace SantanderChallenge.Tests;
 
-public class TopStoriesTests
+public class TopStoriesEndpointTests
 {
     [Fact]
-    public async void Response_format_is_correct()
+    public async void Return_data_from_HackerNewsService_in_correct_format()
     {
-        var mockHackerNewsProvider = A.Fake<IHackerNewsProvider>();
-        A.CallTo(() => mockHackerNewsProvider.GetRecords())
-            .Returns(new List<HackerNewsArticleResponse>
+        var mockHackerNewsService = A.Fake<IHackerNewsService>();
+        A.CallTo(() => mockHackerNewsService.GetTopStories(1))
+            .Returns(new List<HackerNewsStory>
             {
                 new("A uBlock Origin update was rejected from the Chrome Web Store",
                     "https://github.com/uBlockOrigin/uBlock-issues/issues/745",
@@ -30,12 +31,12 @@ public class TopStoriesTests
         var application = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureServices(services => { services.AddSingleton(mockHackerNewsProvider); });
+                builder.ConfigureServices(services => { services.AddSingleton(mockHackerNewsService); });
             });
 
         var client = application.CreateClient();
 
-        var response = await client.GetStringAsync("/articles/top-stories/5");
+        var response = await client.GetStringAsync("/articles/top-stories/1");
         var testObjects = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
         var testObject = testObjects.First();
 
