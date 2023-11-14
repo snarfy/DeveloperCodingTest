@@ -13,7 +13,8 @@ public class ArticlesController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet(Name = "top-stories")]
+    [HttpGet]
+    [Route("top-stories")]
     public string Get()
     {
         return "Coming soon...";
