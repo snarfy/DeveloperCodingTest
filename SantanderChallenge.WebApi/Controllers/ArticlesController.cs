@@ -22,10 +22,11 @@ public class ArticlesController : ControllerBase
 
     [HttpGet]
     [Route("top-stories/{count:int}")]
-    public IEnumerable<HackerNewsArticleResponse> Get(int count)
+    public async Task<IEnumerable<HackerNewsArticleResponse>> GetAsync(int count)
     {
         _logger.LogInformation($"Requesting top {count} HackerNews articles");
-        return _hackerNewsService.GetTopStories(count)
+
+        return (await _hackerNewsService.GetTopStories(count))
             .Select(HackerNewsArticleToResponseConverter.ToResponseModel);
     }
 }
