@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SantanderChallenge.WebApi.ResponseModels;
 
 namespace SantanderChallenge.WebApi.Controllers;
 
@@ -15,8 +16,9 @@ public class ArticlesController : ControllerBase
 
     [HttpGet]
     [Route("top-stories/{count:int}")]
-    public string Get(int count)
+    public IEnumerable<HackerNewsArticleResponse> Get(int count)
     {
-        return $"fetching {count}";
+        for (int i = 0; i < count; i++)
+            yield return new HackerNewsArticleResponse();
     }
 }

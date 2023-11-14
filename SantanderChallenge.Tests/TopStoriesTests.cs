@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using FakeItEasy;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using SantanderChallenge.WebApi;
+using SantanderChallenge.WebApi.ResponseModels;
+using SantanderChallenge.WebApi.Services;
 using Shouldly;
 using Xunit;
 
@@ -8,16 +13,24 @@ namespace SantanderChallenge.Tests;
 public class TopStoriesTests
 {
     [Fact]
-    public async void Can_pass_on_the_amount_requested()
+    public async void Can_retrieve_the_correct_amount_requested()
     {
-        var application = new WebApplicationFactory<Program>();
+        var mockHackerNewsProvider = A.Fake<IHackerNewsProvider>();
+        A.CallTo(() => mockHackerNewsProvider.GetRecords())
+            .Returns(new List<HackerNewsArticleResponse>
+                { new(), new(), new(), new(), new() });
+
+        var application = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services => { services.AddSingleton(mockHackerNewsProvider); });
+            });
 
         var client = application.CreateClient();
 
-        (await client.GetStringAsync("/articles/top-stories/1"))
-            .ShouldBe("fetching 1");
+        var response = await client.GetStringAsync("/articles/top-stories/5");
+        var testObject = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
 
-        (await client.GetStringAsync("/articles/top-stories/5"))
-            .ShouldBe("fetching 5");
+        testObject.Count.ShouldBe(5);
     }
 }
