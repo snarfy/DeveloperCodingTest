@@ -1,5 +1,5 @@
+using SantanderChallenge.Domain.Services.HackerNews.Models;
 using SantanderChallenge.WebApi.ResponseModels;
-using SantanderChallenge.WebApi.Services.HackerNews.Models;
 
 namespace SantanderChallenge.WebApi.Converters;
 

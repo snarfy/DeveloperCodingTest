@@ -2,14 +2,14 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using SantanderChallenge.Domain.Services.HackerNews;
+using SantanderChallenge.Domain.Services.HackerNews.Models;
 using SantanderChallenge.WebApi;
 using SantanderChallenge.WebApi.ResponseModels;
-using SantanderChallenge.WebApi.Services.HackerNews;
-using SantanderChallenge.WebApi.Services.HackerNews.Models;
 using Shouldly;
 using Xunit;
 
-namespace SantanderChallenge.Tests;
+namespace SantanderChallenge.Tests.Controllers;
 
 public class TopStoriesEndpointTests
 {

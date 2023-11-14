@@ -1,4 +1,4 @@
-namespace SantanderChallenge.WebApi.Services.HackerNews.Models;
+namespace SantanderChallenge.Domain.Services.HackerNews.Models;
 
 public record HackerNewsStory(
     string Title,

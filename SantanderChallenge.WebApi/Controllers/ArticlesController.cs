@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using SantanderChallenge.Domain.Services.HackerNews;
 using SantanderChallenge.WebApi.Converters;
 using SantanderChallenge.WebApi.ResponseModels;
-using SantanderChallenge.WebApi.Services.HackerNews;
 
 namespace SantanderChallenge.WebApi.Controllers;
 

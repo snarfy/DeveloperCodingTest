@@ -5,7 +5,11 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SantanderChallenge.WebApi", "SantanderChallenge.WebApi\SantanderChallenge.WebApi.csproj", "{8600325A-480D-4DB2-88CB-9B27CB395A62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SantanderChallenge.Tests", "SantanderChallenge.Tests\SantanderChallenge.Tests.csproj", "{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SantanderChallenge.Tests", "SantanderChallenge.Tests\SantanderChallenge.Tests.csproj", "{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SantanderChallenge.Domain", "SantanderChallenge.Domain\SantanderChallenge.Domain.csproj", "{A54A6A30-DF0E-4546-9C7A-5F8A9940A68B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8EC273CC-CCE3-4767-8BB7-8594ADA6A4D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +25,16 @@ Global
 		{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A54A6A30-DF0E-4546-9C7A-5F8A9940A68B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A54A6A30-DF0E-4546-9C7A-5F8A9940A68B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A54A6A30-DF0E-4546-9C7A-5F8A9940A68B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A54A6A30-DF0E-4546-9C7A-5F8A9940A68B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4F50C31D-3B65-4D1F-83F5-4B889A18F2CA} = {8EC273CC-CCE3-4767-8BB7-8594ADA6A4D8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {94838DF2-923B-43AC-A386-F62F6638AE0F}

@@ -1,4 +1,4 @@
-using SantanderChallenge.WebApi.Services.HackerNews;
+using SantanderChallenge.Domain.Services.HackerNews;
 
 namespace SantanderChallenge.WebApi;
 

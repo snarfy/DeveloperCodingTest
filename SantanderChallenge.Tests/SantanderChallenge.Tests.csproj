@@ -22,7 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SantanderChallenge.Domain\SantanderChallenge.Domain.csproj" />
     <ProjectReference Include="..\SantanderChallenge.WebApi\SantanderChallenge.WebApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\" />
   </ItemGroup>
 
 </Project>
