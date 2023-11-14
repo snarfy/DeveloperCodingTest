@@ -1,11 +1,10 @@
 ﻿namespace SantanderChallenge.WebApi.ResponseModels;
 
-public class HackerNewsArticleResponse
-{
-    public string Title { get; set; }
-    public string Uri { get; set; }
-    public string PostedBy { get; set; }
-    public DateTime Time { get; set; }
-    public int Score { get; set; }
-    public int CommentCount { get; set; }
-}
+public record HackerNewsArticleResponse(
+    string Title,
+    string Uri,
+    string PostedBy,
+    DateTime Time,
+    int Score,
+    int CommentCount
+);

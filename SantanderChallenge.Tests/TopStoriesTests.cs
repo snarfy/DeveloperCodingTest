@@ -13,12 +13,19 @@ namespace SantanderChallenge.Tests;
 public class TopStoriesTests
 {
     [Fact]
-    public async void Can_retrieve_the_correct_amount_requested()
+    public async void Response_format_is_correct()
     {
         var mockHackerNewsProvider = A.Fake<IHackerNewsProvider>();
         A.CallTo(() => mockHackerNewsProvider.GetRecords())
             .Returns(new List<HackerNewsArticleResponse>
-                { new(), new(), new(), new(), new() });
+            {
+                new("A uBlock Origin update was rejected from the Chrome Web Store",
+                    "https://github.com/uBlockOrigin/uBlock-issues/issues/745",
+                    "ismaildonmez",
+                    new DateTime(2019, 10, 12, 13, 43, 1),
+                    1716,
+                    572)
+            });
 
         var application = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -29,8 +36,14 @@ public class TopStoriesTests
         var client = application.CreateClient();
 
         var response = await client.GetStringAsync("/articles/top-stories/5");
-        var testObject = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
+        var testObjects = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
+        var testObject = testObjects.First();
 
-        testObject.Count.ShouldBe(5);
+        testObject.Title.ShouldBe("A uBlock Origin update was rejected from the Chrome Web Store");
+        testObject.Uri.ShouldBe("https://github.com/uBlockOrigin/uBlock-issues/issues/745");
+        testObject.PostedBy.ShouldBe("ismaildonmez");
+        testObject.Time.ShouldBe(new DateTime(2019, 10, 12, 13, 43, 1));
+        testObject.Score.ShouldBe(1716);
+        testObject.CommentCount.ShouldBe(572);
     }
 }
