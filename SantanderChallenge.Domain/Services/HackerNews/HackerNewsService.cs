@@ -5,17 +5,17 @@ namespace SantanderChallenge.Domain.Services.HackerNews;
 
 public class HackerNewsService : IHackerNewsService
 {
-    private readonly IHackerNewsApiClient _hackerNewsApiClient;
+    private readonly IHackerNewsProvider _hackerNewsProvider;
 
-    public HackerNewsService(IHackerNewsApiClient hackerNewsApiClient)
+    public HackerNewsService(IHackerNewsProvider hackerNewsProvider)
     {
-        _hackerNewsApiClient = hackerNewsApiClient;
+        _hackerNewsProvider = hackerNewsProvider;
     }
 
     public async Task<IEnumerable<HackerNewsStory>> GetTopStoriesAsync(int count)
     {
-        var ids = await _hackerNewsApiClient.GetTopStoryIdsAsync(count);
-        var fetchTasks = ids.Select(id => _hackerNewsApiClient.GetStoryByIdAsync(id));
+        var ids = await _hackerNewsProvider.GetTopStoryIdsAsync(count);
+        var fetchTasks = ids.Select(id => _hackerNewsProvider.GetStoryByIdAsync(id));
         var result = await Task.WhenAll(fetchTasks);
         return result;
     }

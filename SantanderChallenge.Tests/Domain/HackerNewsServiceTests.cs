@@ -12,7 +12,7 @@ public class HackerNewsServiceTests
     [Fact]
     public async void Returns_correct_data_from_HackerNewsApiClient()
     {
-        var mockHackerNewsTransport = A.Fake<IHackerNewsApiClient>();
+        var mockHackerNewsTransport = A.Fake<IHackerNewsProvider>();
         A.CallTo(() => mockHackerNewsTransport.GetTopStoryIdsAsync(3))
             .Returns(new List<int> { 123, 232, 15 });
         A.CallTo(() => mockHackerNewsTransport.GetStoryByIdAsync(123))

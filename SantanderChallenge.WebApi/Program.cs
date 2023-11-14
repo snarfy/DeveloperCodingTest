@@ -35,6 +35,7 @@ internal class Program
     private static void RegisterServices(WebApplicationBuilder builder)
     {
         builder.Services.AddTransient<IHackerNewsService, HackerNewsService>();
+        builder.Services.AddTransient<IHackerNewsProvider, HackerNewsProvider>();
         builder.Services.AddTransient<IHackerNewsApiClient, HackerNewsApiClient>();
     }
 }
