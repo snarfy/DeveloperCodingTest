@@ -1,6 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using SantanderChallenge.Domain.Services.HackerNews;
-using SantanderChallenge.WebApi.Converters;
+using SantanderChallenge.WebApi.ApiResponseModels;
 
 namespace SantanderChallenge.WebApi.Controllers;
 
@@ -10,11 +11,14 @@ public class ArticlesController : ControllerBase
 {
     private readonly IHackerNewsService _hackerNewsService;
     private readonly ILogger<ArticlesController> _logger;
+    private readonly IMapper _mapper;
 
     public ArticlesController(
         ILogger<ArticlesController> logger,
-        IHackerNewsService hackerNewsService)
+        IHackerNewsService hackerNewsService,
+        IMapper mapper)
     {
+        _mapper = mapper;
         _logger = logger;
         _hackerNewsService = hackerNewsService;
     }
@@ -29,7 +33,7 @@ public class ArticlesController : ControllerBase
         {
             var response = (await _hackerNewsService.GetTopStoriesAsync(count))
                 .Take(count)
-                .Select(HackerNewsArticleToResponseConverter.ToResponseModel);
+                .Select(_mapper.Map<HackerNewsArticleResponse>);
 
             return Ok(response);
         }

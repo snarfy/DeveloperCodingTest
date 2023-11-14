@@ -1,6 +1,9 @@
+using AutoMapper;
 using SantanderChallenge.Domain.Services.HackerNews;
 using SantanderChallenge.Domain.Services.HackerNews.Client;
 using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer;
+using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.MappingProfiles;
+using SantanderChallenge.WebApi.MappingProfiles;
 
 namespace SantanderChallenge.WebApi;
 
@@ -39,6 +42,12 @@ internal class Program
 
     private static void RegisterServices(WebApplicationBuilder builder, HackerNewsApiConfig hackerNewsApiConfig)
     {
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile(new HackerNewsStoryProfile());
+            cfg.AddProfile(new ExternalHackerNewsStoryResultProfile());
+        });
+        builder.Services.AddSingleton(mapperConfig.CreateMapper());
         builder.Services.AddTransient<IHackerNewsService, HackerNewsService>();
         builder.Services.AddTransient<HackerNewsApiClient>();
         builder.Services.AddSingleton<IHackerNewsApi>(provider =>

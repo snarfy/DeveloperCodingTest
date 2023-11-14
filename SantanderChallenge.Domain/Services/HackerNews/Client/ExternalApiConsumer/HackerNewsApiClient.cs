@@ -1,6 +1,6 @@
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.Converters;
 using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.Models;
 
 namespace SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer;
@@ -18,11 +18,13 @@ public class HackerNewsApiClient : IHackerNewsApi
     //this HttpClient could also be stubbed out, but for the purpose of this demo, I'll keep it simple
     private readonly HttpClient _client;
     private readonly ILogger<HackerNewsApiClient> _logger;
+    private readonly IMapper _mapper;
 
-    public HackerNewsApiClient(HttpClient client, ILogger<HackerNewsApiClient> logger)
+    public HackerNewsApiClient(HttpClient client, ILogger<HackerNewsApiClient> logger, IMapper mapper)
     {
         _client = client;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<int>> GetTopStoryIdsAsync()
@@ -49,7 +51,7 @@ public class HackerNewsApiClient : IHackerNewsApi
             var responseContent = await response.Content.ReadAsStringAsync();
             var hackerNewsStoryFromApi = JsonConvert.DeserializeObject<ExternalHackerNewsStoryResult>(responseContent);
 
-            return HackerNewsStoryFromApiToDomainConverter.Convert(hackerNewsStoryFromApi);
+            return _mapper.Map<HackerNewsStory>(hackerNewsStoryFromApi);
         }
 
         throw new Exception("Non successful response code from API");
