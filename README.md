@@ -95,5 +95,9 @@ Ideally we should introduce a config.json file and read config dynamically from 
 ### Invalidate article cache after a TTL
 Currently we don't invalidate HackerNews article caching (since it remains relatively consistent over a short period of time - just comment count might vary slightly). Ideally, we should invalidate this cache after a certain TTL. I have illustrated how to do so while fetching the TopStoryIdList and hoped it suffice given my time constraints. It could be applied to articles in a similar fashion.
 
+### Persist article cache to some form of storage (Disk/Database)
+By storing article cache to storage, we can remove state from the decorator making it scalable to a web-farm. 
+Also, there are only 200 top articles max on HackerNews, but if there were much more, it's better to store to disk/db than keeping it in-memory.
+
 ### Upgrade to .Net 8
 We should upgrade the entire solution to .Net 8 which was released yesterday (at the time of writing this) November 14, 2023.
