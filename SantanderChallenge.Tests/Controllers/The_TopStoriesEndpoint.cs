@@ -41,7 +41,8 @@ public class The_TopStoriesEndpoint
         // Act
         var client = application.CreateClient();
         var response = await client.GetStringAsync("/articles/top-stories/1");
-        var resultSet = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
+        var resultSet = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response) 
+                        ?? new List<HackerNewsArticleResponse>();
         var firstItem = resultSet.First();
 
         // Assert

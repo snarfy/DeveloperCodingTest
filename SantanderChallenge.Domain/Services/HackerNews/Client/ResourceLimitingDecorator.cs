@@ -10,7 +10,7 @@ namespace SantanderChallenge.Domain.Services.HackerNews.Client;
 public class ResourceLimitingDecorator : IHackerNewsApi
 {
     // Dependencies
-    private readonly ILogger<ResourceLimitingDecorator> _logger;
+    private readonly ILogger<ResourceLimitingDecorator>? _logger;
     private readonly IHackerNewsApi _decorated; // Decorated interface
 
     // Config
@@ -20,7 +20,7 @@ public class ResourceLimitingDecorator : IHackerNewsApi
     // Synchronization methods (monitor/semaphores etc)
     private readonly SemaphoreSlim _limitConcurrentCallsSemaphore; // limits concurrent calls to getArticleById Api
     private readonly object _getByIdDictionaryAccessLock = new(); // a lock for accessing the dictionary of locks
-    private readonly object _getIdsLock = new(); // let's limit getIds to one call only (only one is needed)
+    private readonly SemaphoreSlim _getIdsSemaphore = new(1, 1); // let's limit getIds to one call only (only one is needed)
     private readonly Dictionary<int, SemaphoreSlim> _getByIdLockArray = new(); // dictionary of locks, one per getById request
 
 
@@ -28,12 +28,13 @@ public class ResourceLimitingDecorator : IHackerNewsApi
     private readonly Dictionary<int, HackerNewsStory> _storyByIdCache = new();
     private readonly object _storyByIdCacheAccessLock = new(); // a gatekeeper for the _storyByIdCache object
     private DateTime _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(-1);
-    private List<int> _topStoryIdListCache;
+    private List<int> _topStoryIdListCache = new();
+    private bool _topStoryIdListIsInitialised = false;
 
     // C'tor
     public ResourceLimitingDecorator(
         IHackerNewsApi decorated,
-        ILogger<ResourceLimitingDecorator> logger,
+        ILogger<ResourceLimitingDecorator>? logger,
         int maxConcurrentGetArticleCalls,
         int topArticleIdsCacheTtlSecs)
     {
@@ -45,23 +46,23 @@ public class ResourceLimitingDecorator : IHackerNewsApi
 
     public async Task<IEnumerable<int>> GetTopStoryIdsAsync()
     {
-        lock (_getIdsLock)
+        await _getIdsSemaphore.WaitAsync();
+        var invalidCache = !_topStoryIdListIsInitialised || _nextTopStoryIdsRefresh < DateTime.Now;
+
+        if (invalidCache)
         {
-            var invalidCache = _topStoryIdListCache == null || _nextTopStoryIdsRefresh < DateTime.Now;
+            _logger?.LogInformation("Storing TopStoryIdList to cache");
+            _topStoryIdListCache = (await _decorated.GetTopStoryIdsAsync()).ToList();
+            _topStoryIdListIsInitialised = true;
 
-            if (invalidCache)
-            {
-                _logger?.LogInformation("Storing TopStoryIdList to cache");
-                _topStoryIdListCache = _decorated.GetTopStoryIdsAsync()
-                    .GetAwaiter().GetResult().ToList(); //since you can't await inside a lock
-
-                _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(_topArticleIdsCacheTtlSecs);
-            }
-            else
-            {
-                _logger?.LogInformation("Fetching TopStoryIdList from cache");
-            }
+            _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(_topArticleIdsCacheTtlSecs);
         }
+        else
+        {
+            _logger?.LogInformation("Fetching TopStoryIdList from cache");
+        }
+        _getIdsSemaphore.Release();
+
 
         return _topStoryIdListCache;
     }
@@ -70,7 +71,7 @@ public class ResourceLimitingDecorator : IHackerNewsApi
     {
         var asyncLockForSpecificStoryIdAccess = GetLockForStoryById(id);
 
-        asyncLockForSpecificStoryIdAccess.WaitAsync();
+        await asyncLockForSpecificStoryIdAccess.WaitAsync();
 
         lock (_storyByIdCacheAccessLock)
         {
@@ -83,7 +84,7 @@ public class ResourceLimitingDecorator : IHackerNewsApi
             }
         }
 
-        _limitConcurrentCallsSemaphore.WaitAsync();
+        await _limitConcurrentCallsSemaphore.WaitAsync();
         var result = await _decorated.GetStoryByIdAsync(id);
         _limitConcurrentCallsSemaphore.Release();
 

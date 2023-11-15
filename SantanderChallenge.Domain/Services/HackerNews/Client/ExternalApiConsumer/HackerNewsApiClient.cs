@@ -35,7 +35,9 @@ public class HackerNewsApiClient : IHackerNewsApi
         if (response.IsSuccessStatusCode)
         {
             var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<int>>(responseContent);
+
+            return JsonConvert.DeserializeObject<List<int>>(responseContent)
+                   ?? Enumerable.Empty<int>();
         }
 
         throw new Exception("Non successful response code from API");
