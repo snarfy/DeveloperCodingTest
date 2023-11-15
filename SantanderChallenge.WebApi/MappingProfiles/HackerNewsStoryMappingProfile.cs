@@ -4,9 +4,9 @@ using SantanderChallenge.WebApi.ApiResponseModels;
 
 namespace SantanderChallenge.WebApi.MappingProfiles;
 
-public class HackerNewsStoryProfile : Profile
+public class HackerNewsStoryMappingProfile : Profile // AutoMapper Profile
 {
-    public HackerNewsStoryProfile()
+    public HackerNewsStoryMappingProfile()
     {
         CreateMap<HackerNewsStory, HackerNewsArticleResponse>()
             .ConstructUsing((source, context) => new HackerNewsArticleResponse(

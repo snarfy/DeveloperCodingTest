@@ -1,8 +1,8 @@
 using AutoMapper;
+using SantanderChallenge.Domain.MappingProfiles;
 using SantanderChallenge.Domain.Services.HackerNews;
 using SantanderChallenge.Domain.Services.HackerNews.Client;
 using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer;
-using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.MappingProfiles;
 using SantanderChallenge.WebApi.MappingProfiles;
 
 namespace SantanderChallenge.WebApi;
@@ -14,7 +14,7 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         var config = new HackerNewsApiConfig
         {
-            MaxConcurrentArticleFetching = 3
+            MaxConcurrentArticleFetching = 10 // Config - would have moved it to .json config file given plenty of time
         };
 
         RegisterServices(builder, config);
@@ -44,7 +44,7 @@ internal class Program
     {
         var mapperConfig = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile(new HackerNewsStoryProfile());
+            cfg.AddProfile(new HackerNewsStoryMappingProfile());
             cfg.AddProfile(new ExternalHackerNewsStoryResultProfile());
         });
         builder.Services.AddSingleton(mapperConfig.CreateMapper());
@@ -52,12 +52,9 @@ internal class Program
         builder.Services.AddTransient<HackerNewsApiClient>();
         builder.Services.AddSingleton<IHackerNewsApi>(provider =>
         {
-            var decoratedService =
-                provider.GetRequiredService<HackerNewsApiClient>(); // Replace with the actual implementation type
-            var logger =
-                provider
-                    .GetRequiredService<
-                        ILogger<ResourceLimitingDecorator>>(); // Replace with the actual implementation type
+            var decoratedService = provider.GetRequiredService<HackerNewsApiClient>();
+            var logger = provider.GetRequiredService<ILogger<ResourceLimitingDecorator>>();
+
             return new ResourceLimitingDecorator(decoratedService, logger,
                 hackerNewsApiConfig.MaxConcurrentArticleFetching, hackerNewsApiConfig.RefreshArticleOrderSeconds);
         });

@@ -1,9 +1,9 @@
 using AutoMapper;
 using SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.Models;
 
-namespace SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsumer.MappingProfiles;
+namespace SantanderChallenge.Domain.MappingProfiles;
 
-public class ExternalHackerNewsStoryResultProfile : Profile
+public class ExternalHackerNewsStoryResultProfile : Profile // AutoMapper Profile
 {
     public ExternalHackerNewsStoryResultProfile()
     {

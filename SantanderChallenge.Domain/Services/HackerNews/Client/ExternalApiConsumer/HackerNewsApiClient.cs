@@ -10,13 +10,13 @@ namespace SantanderChallenge.Domain.Services.HackerNews.Client.ExternalApiConsum
 /// </summary>
 public class HackerNewsApiClient : IHackerNewsApi
 {
-    private const string _apiUrlForFetchingArticlesAccordingToRank =
-        "https://hacker-news.firebaseio.com/v0/beststories.json";
-
+    private const string _apiUrlForFetchingArticlesAccordingToRank = "https://hacker-news.firebaseio.com/v0/beststories.json";
     private const string _apiUrlForFetchingArticle = "https://hacker-news.firebaseio.com/v0/item/";
 
-    //this HttpClient could also be stubbed out, but for the purpose of this demo, I'll keep it simple
-    private readonly HttpClient _client;
+    // Dependencies
+    private readonly HttpClient
+        _client; // This HttpClient could also be stubbed out given more time, but for the purpose of this demo, I'll keep it simple
+
     private readonly ILogger<HackerNewsApiClient> _logger;
     private readonly IMapper _mapper;
 
@@ -29,7 +29,7 @@ public class HackerNewsApiClient : IHackerNewsApi
 
     public async Task<IEnumerable<int>> GetTopStoryIdsAsync()
     {
-        _logger.LogInformation("[Outgoing HTTP Request] Fetching all top-article-ids from HackerNews Api");
+        _logger?.LogInformation("[Outgoing HTTP Request] Fetching all top-article-ids from HackerNews Api");
         var response = await _client.GetAsync(_apiUrlForFetchingArticlesAccordingToRank);
 
         if (response.IsSuccessStatusCode)
@@ -43,7 +43,7 @@ public class HackerNewsApiClient : IHackerNewsApi
 
     public async Task<HackerNewsStory> GetStoryByIdAsync(int id)
     {
-        _logger.LogInformation($"[Outgoing HTTP Request] Fetching articleById({id}) from HackerNews Api");
+        _logger?.LogInformation($"[Outgoing HTTP Request] Fetching articleById({id}) from HackerNews Api");
         var response = await _client.GetAsync($"{_apiUrlForFetchingArticle}{id}.json");
 
         if (response.IsSuccessStatusCode)

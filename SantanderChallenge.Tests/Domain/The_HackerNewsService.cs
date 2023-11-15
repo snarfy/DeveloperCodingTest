@@ -13,6 +13,7 @@ public class The_HackerNewsService
     [Fact]
     public async void Returns_correct_data_from_HackerNewsApiClient()
     {
+        // Arrange
         var dateTimeNow = DateTime.Now;
 
         var mockHackerNewsTransport = A.Fake<IHackerNewsApi>();
@@ -21,10 +22,12 @@ public class The_HackerNewsService
         A.CallTo(() => mockHackerNewsTransport.GetStoryByIdAsync(123))
             .Returns(new HackerNewsStory("title123", "uri123", "pete", dateTimeNow, 100, 1000));
 
+        // Act
         var service = new HackerNewsService(mockHackerNewsTransport);
         var topStories = await service.GetTopStoriesAsync(3);
 
-        topStories.Count().ShouldBe(3, "expected 3 articles");
+        // Assert
+        topStories.Count().ShouldBe(3, "Expected 3 articles");
 
         topStories.First().Title.ShouldBe("title123");
         topStories.First().Uri.ShouldBe("uri123");

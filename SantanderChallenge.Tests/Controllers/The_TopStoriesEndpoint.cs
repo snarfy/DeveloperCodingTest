@@ -16,8 +16,9 @@ namespace SantanderChallenge.Tests.Controllers;
 public class The_TopStoriesEndpoint
 {
     [Fact]
-    public async void Return_data_from_HackerNewsService_in_correct_format()
+    public async void Returns_HackerNewsService_data_in_the_correct_format()
     {
+        // Arrange
         var mockHackerNewsService = A.Fake<IHackerNewsService>();
         A.CallTo(() => mockHackerNewsService.GetTopStoriesAsync(1))
             .Returns(new List<HackerNewsStory>
@@ -36,37 +37,41 @@ public class The_TopStoriesEndpoint
                 builder.ConfigureServices(services => { services.AddSingleton(mockHackerNewsService); });
             });
 
+
+        // Act
         var client = application.CreateClient();
-
         var response = await client.GetStringAsync("/articles/top-stories/1");
-        var testObjects = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
-        var testObject = testObjects.First();
+        var resultSet = JsonConvert.DeserializeObject<List<HackerNewsArticleResponse>>(response);
+        var firstItem = resultSet.First();
 
-        testObject.Title.ShouldBe("A uBlock Origin update was rejected from the Chrome Web Store");
-        testObject.Uri.ShouldBe("https://github.com/uBlockOrigin/uBlock-issues/issues/745");
-        testObject.PostedBy.ShouldBe("ismaildonmez");
-        testObject.Time.ShouldBe(new DateTime(2019, 10, 12, 13, 43, 1));
-        testObject.Score.ShouldBe(1716);
-        testObject.CommentCount.ShouldBe(572);
+        // Assert
+        firstItem.Title.ShouldBe("A uBlock Origin update was rejected from the Chrome Web Store");
+        firstItem.Uri.ShouldBe("https://github.com/uBlockOrigin/uBlock-issues/issues/745");
+        firstItem.PostedBy.ShouldBe("ismaildonmez");
+        firstItem.Time.ShouldBe(new DateTime(2019, 10, 12, 13, 43, 1));
+        firstItem.Score.ShouldBe(1716);
+        firstItem.CommentCount.ShouldBe(572);
     }
 
     [Fact]
     public async void Handles_exceptions_gracefully()
     {
-        var mockHackerNewsService = A.Fake<IHackerNewsService>();
-        A.CallTo(() => mockHackerNewsService.GetTopStoriesAsync(1))
+        // Arrange
+        var mockBrokenHackerNewsService = A.Fake<IHackerNewsService>();
+        A.CallTo(() => mockBrokenHackerNewsService.GetTopStoriesAsync(1))
             .Throws(new Exception("Kaboooom! [Broken service simulation]"));
 
         var application = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureServices(services => { services.AddSingleton(mockHackerNewsService); });
+                builder.ConfigureServices(services => { services.AddSingleton(mockBrokenHackerNewsService); });
             });
 
+        // Act
         var client = application.CreateClient();
-
         var expectedErrorResponse = await client.GetAsync("/articles/top-stories/1");
 
+        // Assert
         expectedErrorResponse.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
 
         var errorMessage = await expectedErrorResponse.Content.ReadAsStringAsync();

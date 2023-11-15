@@ -9,14 +9,15 @@ namespace SantanderChallenge.Tests.Domain;
 public class The_ResourceLimitingDecorator
 {
     [Fact]
-    public async void Will_synchronise_and_limit_calls_for_GetTopStoryIdsAsync_to_one_at_a_time_while_cache_is_valid()
+    public async void Synchronizes_and_limits_GetTopStoryIdsAsync_calls_to_just_one_at_a_time_while_cache_is_valid()
     {
-        var mockedDecorated = A.Fake<IHackerNewsApi>();
-        A.CallTo(() => mockedDecorated.GetTopStoryIdsAsync())
+        // Arrange
+        var mockedDecoratedHackerNewsApi = A.Fake<IHackerNewsApi>();
+        A.CallTo(() => mockedDecoratedHackerNewsApi.GetTopStoryIdsAsync())
             .Returns(new List<int> { 123, 232, 15 });
 
-        var service = new ResourceLimitingDecorator(mockedDecorated, null, 1, 100);
-
+        // Act
+        var service = new ResourceLimitingDecorator(mockedDecoratedHackerNewsApi, null, 1, 100);
         var tasks = new List<Task>
         {
             service.GetTopStoryIdsAsync(),
@@ -26,21 +27,23 @@ public class The_ResourceLimitingDecorator
         };
         await Task.WhenAll(tasks);
 
-        A.CallTo(() => mockedDecorated.GetTopStoryIdsAsync())
+        // Assert
+        A.CallTo(() => mockedDecoratedHackerNewsApi.GetTopStoryIdsAsync())
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
-    public async void Will_call_out_to_GetTopStoryIdsAsync_every_time_cache_expires()
+    public async void Calls_out_to_GetTopStoryIdsAsync_every_time_cache_expires()
     {
+        // Arrange
         const int refreshArticleOrderSeconds = -1; // forces caching to always be expired
 
         var mockedDecorated = A.Fake<IHackerNewsApi>();
         A.CallTo(() => mockedDecorated.GetTopStoryIdsAsync())
             .Returns(new List<int> { 123, 232, 15 });
 
+        // Act
         var service = new ResourceLimitingDecorator(mockedDecorated, null, 1, refreshArticleOrderSeconds);
-
         var tasks = new List<Task>
         {
             service.GetTopStoryIdsAsync(),
@@ -49,20 +52,22 @@ public class The_ResourceLimitingDecorator
         };
         await Task.WhenAll(tasks);
 
+        // Assert
         A.CallTo(() => mockedDecorated.GetTopStoryIdsAsync())
             .MustHaveHappened(3, Times.Exactly);
     }
 
 
     [Fact]
-    public async void Will_synchronise_and_limit_calls_far_GetStoryByIdAsync_to_only_one_at_a_time()
+    public async void Synchronizes_and_limits_GetStoryByIdAsync_calls_to_only_one_at_a_time_while_cache_is_valid()
     {
+        // Arrange
         var mockedDecorated = A.Fake<IHackerNewsApi>();
         A.CallTo(() => mockedDecorated.GetStoryByIdAsync(123))
             .Returns(new HackerNewsStory("title123", "123", "pete", DateTime.Now, 100, 1000));
 
+        // Act
         var service = new ResourceLimitingDecorator(mockedDecorated, null, 1, 100);
-
         var tasks = new List<Task>
         {
             service.GetStoryByIdAsync(123),
@@ -72,6 +77,7 @@ public class The_ResourceLimitingDecorator
         };
         await Task.WhenAll(tasks);
 
+        // Assert
         A.CallTo(() => mockedDecorated.GetStoryByIdAsync(123))
             .MustHaveHappenedOnceExactly();
     }

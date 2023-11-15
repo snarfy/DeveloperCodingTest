@@ -5,6 +5,7 @@ namespace SantanderChallenge.Domain.Services.HackerNews;
 
 public class HackerNewsService : IHackerNewsService
 {
+    // Dependencies
     private readonly IHackerNewsApi _hackerNewsApi;
 
     public HackerNewsService(IHackerNewsApi hackerNewsApi)

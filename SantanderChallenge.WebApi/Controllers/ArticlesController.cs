@@ -9,6 +9,7 @@ namespace SantanderChallenge.WebApi.Controllers;
 [Route("[controller]")]
 public class ArticlesController : ControllerBase
 {
+    // Dependencies
     private readonly IHackerNewsService _hackerNewsService;
     private readonly ILogger<ArticlesController> _logger;
     private readonly IMapper _mapper;
@@ -27,7 +28,7 @@ public class ArticlesController : ControllerBase
     [Route("top-stories/{count:int}")]
     public async Task<IActionResult> GetAsync(int count)
     {
-        _logger.LogInformation($"Requesting top {count} articles from top-stories endpoint");
+        _logger?.LogInformation($"Requesting top {count} articles from top-stories endpoint");
 
         try
         {
@@ -39,7 +40,7 @@ public class ArticlesController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An error occurred while fetching top articles.");
+            _logger?.LogError(e, "An error occurred while fetching top articles.");
 
             return StatusCode(StatusCodes.Status500InternalServerError, "An internal server error occurred");
         }

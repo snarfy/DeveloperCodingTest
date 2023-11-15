@@ -9,95 +9,104 @@ namespace SantanderChallenge.Domain.Services.HackerNews.Client;
 /// </summary>
 public class ResourceLimitingDecorator : IHackerNewsApi
 {
-    //decorated interface
-    private readonly IHackerNewsApi _decorated;
-
-    //synchronization methods (monitor/semaphores etc)
-    private readonly Semaphore _getArticlesSemaphore; // let's limit getArticleById sparingly to only a few calls
-
-    private readonly object
-        _getByIdLock =
-            new(); // we need to funnel all requests through one lock, to ensure only one download a new record at a time
-
-    private readonly Dictionary<int, object> _getByIdLockArray = new(); // we lock per getbyid requests
-    private readonly object _getByIdLockArrayGateKeeper = new(); // a gatekeeper for the array object
-    private readonly object _getIdsLock = new(); // let's limit getIds to one call only (only one is needed)
-
-    //dependencies
+    // Dependencies
     private readonly ILogger<ResourceLimitingDecorator> _logger;
-    private readonly int _refreshArticleOrderSeconds;
+    private readonly IHackerNewsApi _decorated; // Decorated interface
 
-    //caching (*NOTE: caching could be split into another decorator, but for the purpose of this demo, I'll keep it relatively simple
+    // Config
+    private readonly int _topArticleIdsCacheTtlSecs;
+
+
+    // Synchronization methods (monitor/semaphores etc)
+    private readonly SemaphoreSlim _limitConcurrentCallsSemaphore; // limits concurrent calls to getArticleById Api
+    private readonly object _getByIdDictionaryAccessLock = new(); // a lock for accessing the dictionary of locks
+    private readonly object _getIdsLock = new(); // let's limit getIds to one call only (only one is needed)
+    private readonly Dictionary<int, SemaphoreSlim> _getByIdLockArray = new(); // dictionary of locks, one per getById request
+
+
+    // Caching Objects (*NOTE: caching could be split into another decorator, but for the purpose of this demo, I'll keep it relatively simple
     private readonly Dictionary<int, HackerNewsStory> _storyByIdCache = new();
-    private readonly object _storyByIdCacheLock = new(); // a gatekeeper for the _storyByIdCache object
+    private readonly object _storyByIdCacheAccessLock = new(); // a gatekeeper for the _storyByIdCache object
     private DateTime _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(-1);
     private List<int> _topStoryIdListCache;
 
-    //C'tor
+    // C'tor
     public ResourceLimitingDecorator(
         IHackerNewsApi decorated,
         ILogger<ResourceLimitingDecorator> logger,
-        int maxConcurrentGetArticleCount,
-        int refreshArticleOrderSeconds)
+        int maxConcurrentGetArticleCalls,
+        int topArticleIdsCacheTtlSecs)
     {
         _decorated = decorated;
         _logger = logger;
-        _refreshArticleOrderSeconds = refreshArticleOrderSeconds;
-        _getArticlesSemaphore = new Semaphore(maxConcurrentGetArticleCount, maxConcurrentGetArticleCount);
+        _topArticleIdsCacheTtlSecs = topArticleIdsCacheTtlSecs;
+        _limitConcurrentCallsSemaphore = new SemaphoreSlim(maxConcurrentGetArticleCalls, maxConcurrentGetArticleCalls);
     }
 
     public async Task<IEnumerable<int>> GetTopStoryIdsAsync()
     {
         lock (_getIdsLock)
         {
-            var mustRefresh = _topStoryIdListCache == null || _nextTopStoryIdsRefresh < DateTime.Now;
-            if (mustRefresh)
+            var invalidCache = _topStoryIdListCache == null || _nextTopStoryIdsRefresh < DateTime.Now;
+
+            if (invalidCache)
             {
+                _logger?.LogInformation("Storing TopStoryIdList to cache");
                 _topStoryIdListCache = _decorated.GetTopStoryIdsAsync()
                     .GetAwaiter().GetResult().ToList(); //since you can't await inside a lock
 
-                _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(_refreshArticleOrderSeconds);
+                _nextTopStoryIdsRefresh = DateTime.Now.AddSeconds(_topArticleIdsCacheTtlSecs);
+            }
+            else
+            {
+                _logger?.LogInformation("Fetching TopStoryIdList from cache");
             }
         }
 
         return _topStoryIdListCache;
     }
 
-    public Task<HackerNewsStory> GetStoryByIdAsync(int id)
+    public async Task<HackerNewsStory> GetStoryByIdAsync(int id)
     {
-        var lockObjectForSpecificStoryId = GetLockForStoryById(id);
+        var asyncLockForSpecificStoryIdAccess = GetLockForStoryById(id);
 
-        lock (lockObjectForSpecificStoryId)
+        asyncLockForSpecificStoryIdAccess.WaitAsync();
+
+        lock (_storyByIdCacheAccessLock)
         {
-            lock (_storyByIdCacheLock)
+            if (_storyByIdCache.ContainsKey(id))
             {
-                if (_storyByIdCache.ContainsKey(id))
-                    return Task.FromResult(_storyByIdCache[id]);
+                _logger?.LogInformation($"Fetching StoryById({id}) from cache");
+
+                asyncLockForSpecificStoryIdAccess.Release();
+                return _storyByIdCache[id];
             }
-
-            _getArticlesSemaphore.WaitOne();
-            var result = _decorated.GetStoryByIdAsync(id).GetAwaiter().GetResult();
-            _getArticlesSemaphore.Release();
-
-            lock (_storyByIdCacheLock)
-            {
-                _storyByIdCache.TryAdd(id, result);
-            }
-
-            return Task.FromResult(result);
         }
+
+        _limitConcurrentCallsSemaphore.WaitAsync();
+        var result = await _decorated.GetStoryByIdAsync(id);
+        _limitConcurrentCallsSemaphore.Release();
+
+        lock (_storyByIdCacheAccessLock)
+        {
+            _logger?.LogInformation($"Storing StoryById({id}) result to cache");
+            _storyByIdCache.Add(id, result);
+        }
+
+        asyncLockForSpecificStoryIdAccess.Release();
+        return result;
     }
 
-    //locking helper (one lock per id, for synchronizing fetching articles byId)
-    private object GetLockForStoryById(int id)
+    // Locking helper (one lock per id, for synchronizing fetching & persisting articles byId)
+    private SemaphoreSlim GetLockForStoryById(int id)
     {
-        object lockObjectForSpecificStoryId;
+        SemaphoreSlim lockObjectForSpecificStoryId;
 
-        lock (_getByIdLockArrayGateKeeper)
+        lock (_getByIdDictionaryAccessLock)
         {
             if (!_getByIdLockArray.ContainsKey(id))
             {
-                lockObjectForSpecificStoryId = new object();
+                lockObjectForSpecificStoryId = new SemaphoreSlim(1);
                 _getByIdLockArray.Add(id, lockObjectForSpecificStoryId);
             }
             else
